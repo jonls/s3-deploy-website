@@ -3,7 +3,6 @@ import os
 import re
 import argparse
 import logging
-from datetime import timedelta
 import gzip
 import shutil
 from email.utils import parsedate_tz, mktime_tz
@@ -13,11 +12,9 @@ import boto
 from boto.s3.connection import S3Connection, OrdinaryCallingFormat
 from boto.s3.key import Key
 
-import yaml
+from six import BytesIO
 
-from six import integer_types, BytesIO
-
-from .filematch import match_key
+from . import config
 from .prefixcovertree import PrefixCoverTree
 
 
@@ -27,29 +24,6 @@ COMPRESSED_EXTENSIONS = frozenset([
 logger = logging.getLogger(__name__)
 
 mimetypes.init()
-
-
-def timedelta_from_duration_string(s):
-    """Convert time duration string to number of seconds."""
-    if re.match(r'^\d+$', s):
-        return timedelta(seconds=int(s))
-
-    td_args = {}
-    for part in s.split(','):
-        part = part.strip()
-        m = re.match(r'(\d+)\s+(year|month|day|hour|minute|second)s?', part)
-        if not m:
-            raise ValueError(
-                'Unable to parse duration string: {}'.format(part))
-
-        if m.group(2) == 'month':
-            td_args['days'] = int(m.group(1)) * 30
-        elif m.group(2) == 'year':
-            td_args['days'] = int(m.group(1)) * 365
-        else:
-            td_args[m.group(2) + 's'] = int(m.group(1))
-
-    return timedelta(**td_args)
 
 
 def key_name_from_path(path):
@@ -66,29 +40,6 @@ def key_name_from_path(path):
     return '/'.join(reversed(key_parts))
 
 
-def resolve_cache_rules(key_name, rules):
-    """Returns the value of the Cache-Control header after applying rules."""
-
-    for rule in rules:
-        if match_key(rule['match'], key_name):
-            cache_control = None
-            if 'cache_control' in rule:
-                cache_control = rule['cache_control']
-            if 'maxage' in rule:
-                if isinstance(rule['maxage'], integer_types):
-                    maxage = rule['maxage']
-                else:
-                    td = timedelta_from_duration_string(rule['maxage'])
-                    maxage = int(td.total_seconds())
-                if cache_control is None:
-                    cache_control = 'maxage={}'.format(maxage)
-                else:
-                    cache_control += ', maxage={}'.format(maxage)
-            return cache_control
-
-    return None
-
-
 def upload_key(key, path, cache_rules, dry, replace=False):
     """Upload data in path to key."""
 
@@ -102,7 +53,7 @@ def upload_key(key, path, cache_rules, dry, replace=False):
     try:
         encoding = None
 
-        cache_control = resolve_cache_rules(key.key, cache_rules)
+        cache_control = config.resolve_cache_rules(key.key, cache_rules)
         if cache_control is not None:
             logger.debug('Using cache control: {}'.format(cache_control))
 
@@ -154,35 +105,17 @@ def main():
     args = parser.parse_args()
 
     # Open configuration file
-    if os.path.isdir(args.path):
-        for filename in ('.s3_website.yaml', '.s3_website.yml'):
-            path = os.path.join(args.path, filename)
-            try:
-                with open(path, 'r') as f:
-                    config = yaml.safe_load(f)
-            except:
-                logger.debug('Unable to load config from {}'.format(path),
-                             exc_info=True)
-            else:
-                base_path = args.path
-                break
-        else:
-            parser.error(
-                'Unable to find .s3_website.yaml in {}'.format(args.path))
-    else:
-        with open(args.path, 'r') as f:
-            config = yaml.safe_load(f)
-        base_path = os.path.dirname(args.path)
+    conf, base_path = config.load_config_file(args.path)
 
-    bucket_name = config['s3_bucket']
-    cache_rules = config.get('cache_rules', [])
+    bucket_name = conf['s3_bucket']
+    cache_rules = conf.get('cache_rules', [])
 
     logger.info('Connecting to bucket {}...'.format(bucket_name))
 
     conn = S3Connection(calling_format=OrdinaryCallingFormat())
     bucket = conn.get_bucket(bucket_name, validate=False)
 
-    site_dir = os.path.join(base_path, config['site'])
+    site_dir = os.path.join(base_path, conf['site'])
 
     logger.info('Site: {}'.format(site_dir))
 
@@ -239,13 +172,13 @@ def main():
     logger.info('Bucket update done.')
 
     # Invalidate files in cloudfront distribution
-    if 'cloudfront_distribution_id' in config:
+    if 'cloudfront_distribution_id' in conf:
         logger.info('Connecting to Cloudfront distribution {}...'.format(
-            config['cloudfront_distribution_id']))
+            conf['cloudfront_distribution_id']))
 
         index_pattern = None
-        if 'index_document' in config:
-            index_doc = config['index_document']
+        if 'index_document' in conf:
+            index_doc = conf['index_document']
             index_pattern = r'(^(?:.*/)?)' + re.escape(index_doc) + '$'
 
         def path_from_key_name(key_name):
@@ -270,7 +203,7 @@ def main():
         conn = boto.connect_cloudfront()
 
         if len(paths) > 0:
-            dist_id = config['cloudfront_distribution_id']
+            dist_id = conf['cloudfront_distribution_id']
             if not args.dry:
                 logger.info('Creating invalidation request...')
                 conn.create_invalidation_request(dist_id, paths)
