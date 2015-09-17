@@ -3,6 +3,10 @@
 from setuptools import setup, find_packages
 
 
+# Read long description
+with open('README.rst') as f:
+    long_description = f.read()
+
 setup(
     name='s3-deploy-website',
     version='0.0.1',
@@ -11,6 +15,7 @@ setup(
     author_email='jonlst@gmail.com',
 
     description='S3 website deployment tool',
+    long_description=long_description,
 
     packages=find_packages(),
     entry_points={
