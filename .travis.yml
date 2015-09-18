@@ -1,3 +1,12 @@
 language: python
 install: pip install tox
 script: tox -v
+deploy:
+  provider: pypi
+  user: jonls
+  password:
+    secure: QVX+GcdRor5enylCIWowZnoJtlTUg+o/6WzmRXxXJLeBjw79Pwjz30cFN5aDr2+UB6ThMAHS3VY7198l+IYNXOhsnf1hL+yZ0YlyfG0qq16y2u6RdrPy/Rj9BOx8YF+mSWFYyNvba3vTqN9lN3x5G0BaOIvALRXzp0FYWw6Alh9u1TYT/MK3Xra0Y2yaAbAt9DpkLdxE9wvy3sRaYPyXMn7AaJ9mLQAuMpcGfZmemVDdPnywW6QHOCV0Lna1/V6QQxbUk64/zW5olz8P0Ptq8inF1ccf3ScTzV9SQIwKSUCOq2wNMchx/u9Qf6z9OhPCjId3+mZP9++V6uq9jHanlQayX2YdG3/qlTim1HD+aUfCvylBe/ZMD++0q+sZbzL34RD3giWY8m1bWGkNzS2br/YYqiccY/womLVzXrIC1y0Ikub3KgwNyPvVzzwR7Gns/V+AsnqTxpYSdRL5/HlO1GfnpcwlDvJtxIz5X/1dN2gpLOl4Xp+9EdWmsPlhuV0dDxr9T3rAhuWdl8O60tO1j/OwChGoaLbpD1hlaaSGirBLJ9Wd4Br5eaTrpcMKUTp1GcztQOZFchHsXpQsysl7sLCUpFUT0WA+1oB6MEkNavqYmYb3/eYCfb1jMT131SieIMwmxF1KrtRni6ElSjWl89bz3bOcZOkSPDM+ifcRTYA=
+  on:
+    tags: true
+    repo: jonls/s3-deploy-website
+  distributions: "sdist bdist_wheel"
