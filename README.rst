@@ -62,19 +62,22 @@ reads.
 Configuration file
 ------------------
 
-**``site``**
+**site**
     The directory of the static content to be uploaded (relative to
     the location of the configuration file (e.g. ``_site`` for Jekyll sites).
 
-**``s3_bucket``**
-    The name of the S3 bucket to upload the files to.
-    (TODO: AUTHENTICATION)
+**s3_bucket**
+    The name of the S3 bucket to upload the files to. You have to allow the
+    actions ``s3:GetObject``, ``s3:PutObject``, ``s3:DeleteObject`` and
+    ``s3:ListBucket`` on the bucket and the keys e.g.
+    ``arn:aws:s3:::example.com`` and ``arn:aws:s3:::example.com/*``.
 
-**``cloudfront_distribution_id``**
+**cloudfront_distribution_id**
     The CloudFront distribution to invalidate after uploading new files. Only
-    files that were changed will be invalidated. (TODO: AUTHENTICATION)
+    files that were changed will be invalidated. You have to allow the
+    action ``cloudfront:CreateInvalidation``.
 
-**``cache_rules``**
+**cache_rules**
     A list of rules to determine the cache configuration of the uploaded files.
     The ``match`` key specifies a pattern that the rule applies to. Only the
     first rule to match a given key will be used. The ``maxage`` key
