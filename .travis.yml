@@ -1,6 +1,7 @@
 language: python
-install: pip install tox
+install: pip install tox python-coveralls
 script: tox -v
+after_success: coveralls
 deploy:
   provider: pypi
   user: jonls

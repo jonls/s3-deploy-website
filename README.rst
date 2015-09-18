@@ -9,6 +9,10 @@ Deploy static website to S3/CloudFront
    :alt: PyPI badge
    :target: http://badge.fury.io/py/s3-deploy-website
 
+.. image:: https://coveralls.io/repos/jonls/s3-deploy-website/badge.svg?branch=master&service=github
+   :alt: Test coverage
+   :target: https://coveralls.io/github/jonls/s3-deploy-website?branch=master
+
 This is a deployment tool for uploading static websites to S3. If CloudFront is
 used for hosting the website, the uploaded files can be automatically
 invalidated in the CloudFront distribution. A prefix tree is used to
