@@ -17,6 +17,15 @@ setup(
     description='S3 website deployment tool',
     long_description=long_description,
 
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
+        'Topic :: Internet :: WWW/HTTP :: Site Management',
+    ],
+
     packages=find_packages(),
     entry_points={
         'console_scripts': [
