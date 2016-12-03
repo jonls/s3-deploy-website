@@ -80,6 +80,10 @@ Configuration file
     ``s3:ListBucket`` on the bucket and the keys e.g.
     ``arn:aws:s3:::example.com`` and ``arn:aws:s3:::example.com/*``.
 
+**s3_reduced_redundancy**
+    An optional boolean to indicate whether the files should be uploaded 
+    to `reduced redundancy`_ storage.
+
 **cloudfront_distribution_id**
     The CloudFront distribution to invalidate after uploading new files. Only
     files that were changed will be invalidated. You have to allow the
@@ -91,6 +95,8 @@ Configuration file
     first rule to match a given key will be used. The ``maxage`` key
     specifies the time to cache the file. The value should be either a number
     of seconds or a string like ``30 days``, ``5 minutes, 30 seconds``, etc.
+
+.. _`reduced redundancy`: https://aws.amazon.com/s3/reduced-redundancy/
 
 Similar software
 ----------------
