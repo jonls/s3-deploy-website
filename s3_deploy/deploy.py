@@ -11,7 +11,6 @@ from datetime import datetime
 import boto3
 
 from six import BytesIO
-from six.moves.urllib.parse import quote_plus
 
 from . import config
 from .prefixcovertree import PrefixCoverTree
@@ -234,8 +233,7 @@ def main():
                     InvalidationBatch=dict(
                         Paths=dict(
                             Quantity=len(paths),
-                            Items=['<Path>' + quote_plus(p) + '</Path>'
-                                   for p in paths]
+                            Items=paths
                         ),
                         CallerReference='s3-deploy-website'
                     )
