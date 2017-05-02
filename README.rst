@@ -59,7 +59,7 @@ AWS credentials can be provided through the environment variables
 .. code-block:: shell
 
     $ export AWS_ACCESS_KEY_ID=XXXXXX
-    $ export AWS_SECTER_ACCESS_KEY=XXXXXX
+    $ export AWS_SECRET_ACCESS_KEY=XXXXXX
     $ s3-deploy-website
 
 They can also be provided through the various configuration files that boto_
