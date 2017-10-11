@@ -65,7 +65,7 @@ AWS credentials can be provided through the environment variables
 They can also be provided through the various configuration files that boto_
 reads.
 
-.. _boto: https://boto.readthedocs.org/en/latest/boto_config_tut.html
+.. _boto: https://boto3.readthedocs.io/en/latest/guide/configuration.html
 
 Configuration file
 ------------------
