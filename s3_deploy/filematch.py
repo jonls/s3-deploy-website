@@ -30,10 +30,13 @@ def compile_re(pattern):
     return prefix + ''.join(re_pattern) + '$'
 
 
-def match_key(pattern, key):
-    """Match key to a glob (gitignore-style) pattern."""
+def match_key(pattern, key, regexp=False):
+    """Match key to a glob (gitignore-style) or regexp pattern."""
 
     if pattern == '':
         raise ValueError('Empty pattern is invalid')
 
-    return bool(re.search(compile_re(pattern), key))
+    if not regexp:
+        pattern = compile_re(pattern)
+
+    return bool(re.search(pattern, key))
