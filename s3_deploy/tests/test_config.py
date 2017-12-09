@@ -1,6 +1,11 @@
 
-import unittest
 from datetime import timedelta
+import os
+import shutil
+import tempfile
+import unittest
+
+from mock import patch, call
 
 from s3_deploy import config
 
@@ -97,3 +102,101 @@ class ResolveCacheRulesTest(unittest.TestCase):
             {'match': '*', 'maxage': 300}
         ])
         self.assertEqual(cache, 'maxage=200')
+
+
+class LoadConfigFileTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp_dir)
+
+    def test_load_config_from_path(self):
+        path = os.path.join(self.tmp_dir, 'some_file_name')
+        with open(path, 'w') as f:
+            f.write('\n'.join([
+                'site: _site',
+                's3_bucket: example.com',
+                'cloudfront_distribution_id: ABCDEFGHI',
+                '',
+                'cache_rules:',
+                '- match: "/assets/*"',
+                '  maxage: 30 days',
+                '',
+                '- match: "/css/*"',
+                '  maxage: 30 days',
+                '',
+                '- match: "*"',
+                '  maxage: 1 hour',
+                '',
+            ]))
+
+        self.assertEqual(config._load_config_from_path(path), {
+            'site': '_site',
+            's3_bucket': 'example.com',
+            'cloudfront_distribution_id': 'ABCDEFGHI',
+            'cache_rules': [
+                {
+                    'match': '/assets/*',
+                    'maxage': '30 days',
+                },
+                {
+                    'match': '/css/*',
+                    'maxage': '30 days',
+                },
+                {
+                    'match': '*',
+                    'maxage': '1 hour',
+                },
+            ]
+        })
+
+    @patch('os.path.isdir', return_value=False)
+    @patch('s3_deploy.config._load_config_from_path')
+    def test_load_config_file_from_absolute_path(self, mock_load, mock_is_dir):
+        mocked_config_dict = {}
+        mock_load.return_value = mocked_config_dict
+        fake_path = os.path.join('path', 'to', 'some_file.ext')
+        config_dict, base_path = config.load_config_file(fake_path)
+
+        mock_load.assert_called_with(fake_path)
+        self.assertEqual(config_dict, mocked_config_dict)
+        self.assertEqual(base_path, os.path.join('path', 'to'))
+
+    @patch('os.path.isdir', return_value=False)
+    @patch('s3_deploy.config._load_config_from_path')
+    def test_load_config_file_from_nonexisting_file(
+            self, mock_load, mock_is_dir):
+        mock_load.side_effect = IOError('Failed to load fake file')
+        fake_path = os.path.join('path', 'to', 'some_file.ext')
+        with self.assertRaises(IOError):
+            config.load_config_file(fake_path)
+
+        mock_load.assert_called_with(fake_path)
+
+    @patch('os.path.isdir', return_value=True)
+    @patch('s3_deploy.config._load_config_from_path')
+    def test_load_config_file_from_directory(self, mock_load, mock_is_dir):
+        mocked_config_dict = {}
+        mock_load.return_value = mocked_config_dict
+        fake_path = os.path.join('path', 'to', 'some', 'directory')
+        config_dict, base_path = config.load_config_file(fake_path)
+
+        mock_load.assert_called_once_with(
+            os.path.join(fake_path, '.s3_website.yaml'))
+        self.assertEqual(config_dict, mocked_config_dict)
+        self.assertEqual(base_path, fake_path)
+
+    @patch('os.path.isdir', return_value=True)
+    @patch('s3_deploy.config._load_config_from_path')
+    def test_load_config_file_from_directory_nonexisting(
+            self, mock_load, mock_is_dir):
+        mock_load.side_effect = IOError('Failed to load fake file')
+        fake_path = os.path.join('path', 'to', 'directory')
+        with self.assertRaises(ValueError):
+            config.load_config_file(fake_path)
+
+        mock_load.assert_has_calls([
+            call(os.path.join(fake_path, '.s3_website.yaml')),
+            call(os.path.join(fake_path, '.s3_website.yml'))
+        ])

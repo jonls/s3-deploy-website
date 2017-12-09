@@ -13,6 +13,11 @@ from .filematch import match_key
 logger = logging.getLogger(__name__)
 
 
+def _load_config_from_path(path):
+    with open(path, 'r') as f:
+        return yaml.safe_load(f)
+
+
 def load_config_file(path):
     """Load configuration settings from file.
 
@@ -22,8 +27,7 @@ def load_config_file(path):
         for filename in ('.s3_website.yaml', '.s3_website.yml'):
             filepath = os.path.join(path, filename)
             try:
-                with open(filepath, 'r') as f:
-                    config = yaml.safe_load(f)
+                config = _load_config_from_path(filepath)
             except Exception:
                 logger.debug('Unable to load config from {}'.format(filepath),
                              exc_info=True)
@@ -34,8 +38,7 @@ def load_config_file(path):
             raise ValueError(
                 'Unable to find .s3_website.yaml in {}'.format(path))
     else:
-        with open(path, 'r') as f:
-            config = yaml.safe_load(f)
+        config = _load_config_from_path(path)
         base_path = os.path.dirname(path)
 
     return config, base_path
