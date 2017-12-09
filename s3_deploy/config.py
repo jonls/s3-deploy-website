@@ -24,7 +24,7 @@ def load_config_file(path):
             try:
                 with open(filepath, 'r') as f:
                     config = yaml.safe_load(f)
-            except:
+            except Exception:
                 logger.debug('Unable to load config from {}'.format(filepath),
                              exc_info=True)
             else:
