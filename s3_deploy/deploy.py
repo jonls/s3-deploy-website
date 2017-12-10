@@ -111,26 +111,8 @@ def upload_key(obj, path, cache_rules, dry, storage_class=None):
         content_file.close()
 
 
-def main():
-    logging.basicConfig(level=logging.INFO)
-    logging.getLogger('boto3').setLevel(logging.WARNING)
-
-    parser = argparse.ArgumentParser(
-        description='AWS S3 website deployment tool')
-    parser.add_argument(
-        '-f', '--force', action='store_true', dest='force',
-        help='force upload of all files')
-    parser.add_argument(
-        '-n', '--dry-run', action='store_true', dest='dry',
-        help='run without uploading any files')
-    parser.add_argument(
-        'path', help='the .s3_website.yaml configuration file or directory',
-        default='.', nargs='?')
-    args = parser.parse_args()
-
-    # Open configuration file
-    conf, base_path = config.load_config_file(args.path)
-
+def deploy(conf, base_path, force, dry):
+    """Deploy using given configuration."""
     bucket_name = conf['s3_bucket']
     cache_rules = conf.get('cache_rules', [])
     if conf.get('s3_reduced_redundancy', False):
@@ -157,21 +139,20 @@ def main():
         # Delete keys that have been deleted locally
         if not os.path.isfile(path):
             logger.info('Deleting {}...'.format(obj.key))
-            if not args.dry:
+            if not dry:
                 obj.delete()
             updated_keys.add(obj.key)
             continue
 
         # Skip keys that have not been updated
         mtime = datetime.fromtimestamp(os.path.getmtime(path), UTC)
-        if not args.force:
+        if not force:
             if (mtime <= obj.last_modified and
                     obj.storage_class == storage_class):
                 logger.info('Not modified, skipping {}.'.format(obj.key))
                 continue
 
-        upload_key(
-            obj, path, cache_rules, args.dry, storage_class=storage_class)
+        upload_key(obj, path, cache_rules, dry, storage_class=storage_class)
         updated_keys.add(obj.key)
 
     for dirpath, dirnames, filenames in os.walk(site_dir):
@@ -188,7 +169,7 @@ def main():
             logger.info('Creating key {}...'.format(obj.key))
 
             upload_key(
-                obj, path, cache_rules, args.dry, storage_class=storage_class)
+                obj, path, cache_rules, dry, storage_class=storage_class)
             updated_keys.add(key_name)
 
     logger.info('Bucket update done.')
@@ -222,24 +203,50 @@ def main():
             logger.info('Preparing to invalidate {}...'.format(path))
             paths.append(path)
 
-        cloudfront = boto3.client('cloudfront')
+        invalidate_paths(conf['cloudfront_distribution_id'], paths, dry)
 
-        if len(paths) > 0:
-            dist_id = conf['cloudfront_distribution_id']
-            if not args.dry:
-                logger.info('Creating invalidation request...')
-                response = cloudfront.create_invalidation(
-                    DistributionId=dist_id,
-                    InvalidationBatch=dict(
-                        Paths=dict(
-                            Quantity=len(paths),
-                            Items=paths
-                        ),
-                        CallerReference='s3-deploy-website'
-                    )
+
+def invalidate_paths(dist_id, paths, dry):
+    """Invalidate CloudFront distribution paths."""
+    cloudfront = boto3.client('cloudfront')
+    if len(paths) > 0:
+        if not dry:
+            logger.info('Creating invalidation request...')
+            response = cloudfront.create_invalidation(
+                DistributionId=dist_id,
+                InvalidationBatch=dict(
+                    Paths=dict(
+                        Quantity=len(paths),
+                        Items=paths
+                    ),
+                    CallerReference='s3-deploy-website'
                 )
-                invalidation = response['Invalidation']
-                logger.info('Invalidation request {} is {}'.format(
-                    invalidation['Id'], invalidation['Status']))
-        else:
-            logger.info('Nothing updated, invalidation skipped.')
+            )
+            invalidation = response['Invalidation']
+            logger.info('Invalidation request {} is {}'.format(
+                invalidation['Id'], invalidation['Status']))
+    else:
+        logger.info('Nothing updated, invalidation skipped.')
+
+
+def main(command_args=None):
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger('boto3').setLevel(logging.WARNING)
+
+    parser = argparse.ArgumentParser(
+        description='AWS S3 website deployment tool')
+    parser.add_argument(
+        '-f', '--force', action='store_true', dest='force',
+        help='force upload of all files')
+    parser.add_argument(
+        '-n', '--dry-run', action='store_true', dest='dry',
+        help='run without uploading any files')
+    parser.add_argument(
+        'path', help='the .s3_website.yaml configuration file or directory',
+        default='.', nargs='?')
+    args = parser.parse_args(command_args)
+
+    # Open configuration file
+    conf, base_path = config.load_config_file(args.path)
+
+    deploy(conf, base_path, args.force, args.dry)
