@@ -40,5 +40,6 @@ setup(
     test_suite='s3_deploy.tests',
     tests_require=[
         'mock',
+        'moto',
     ],
 )
