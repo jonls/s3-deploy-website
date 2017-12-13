@@ -36,7 +36,7 @@ except ImportError:
 
 
 COMPRESSED_EXTENSIONS = frozenset([
-    '.txt', '.html', '.css', '.js', '.json', '.xml', '.rss'])
+    '.txt', '.html', '.css', '.js', '.json', '.xml', '.rss', '.ico', '.svg'])
 
 _STORAGE_STANDARD = 'STANDARD'
 _STORAGE_REDUCED_REDUDANCY = 'REDUCED_REDUNDANCY'
