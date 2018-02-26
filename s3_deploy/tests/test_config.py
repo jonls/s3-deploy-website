@@ -68,19 +68,19 @@ class ResolveCacheRulesTest(unittest.TestCase):
         cache = config.resolve_cache_rules('test', [
             {'match': '*', 'maxage': 3600}
         ])
-        self.assertEqual('maxage=3600', cache)
+        self.assertEqual('max-age=3600', cache)
 
     def test_resolve_catch_all_to_maxage_string(self):
         cache = config.resolve_cache_rules('test', [
             {'match': '*', 'maxage': '1 hour'}
         ])
-        self.assertEqual('maxage=3600', cache)
+        self.assertEqual('max-age=3600', cache)
 
     def test_resolve_catch_all_to_both(self):
         cache = config.resolve_cache_rules('test', [
             {'match': '*', 'cache_control': 'public', 'maxage': '1 hour'}
         ])
-        self.assertEqual('public, maxage=3600', cache)
+        self.assertEqual('public, max-age=3600', cache)
 
     def test_resolve_catch_all_to_none(self):
         cache = config.resolve_cache_rules('test', [
@@ -101,7 +101,7 @@ class ResolveCacheRulesTest(unittest.TestCase):
             {'match': 'test', 'maxage': 200},
             {'match': '*', 'maxage': 300}
         ])
-        self.assertEqual(cache, 'maxage=200')
+        self.assertEqual(cache, 'max-age=200')
 
 
 class LoadConfigFileTest(unittest.TestCase):
