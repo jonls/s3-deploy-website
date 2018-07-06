@@ -82,9 +82,9 @@ def resolve_cache_rules(key_name, rules):
                     td = timedelta_from_duration_string(rule['maxage'])
                     maxage = int(td.total_seconds())
                 if cache_control is None:
-                    cache_control = 'maxage={}'.format(maxage)
+                    cache_control = 'max-age={}'.format(maxage)
                 else:
-                    cache_control += ', maxage={}'.format(maxage)
+                    cache_control += ', max-age={}'.format(maxage)
             return cache_control
 
     return None
