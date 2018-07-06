@@ -9,7 +9,7 @@ with open('README.rst') as f:
 
 setup(
     name='s3-deploy-website',
-    version='0.2.1',
+    version='0.2.2',
     license='MIT',
     author='Jon Lund Steffensen',
     author_email='jonlst@gmail.com',
