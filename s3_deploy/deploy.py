@@ -115,6 +115,8 @@ def deploy(conf, base_path, force, dry):
     """Deploy using given configuration."""
     bucket_name = conf['s3_bucket']
     cache_rules = conf.get('cache_rules', [])
+    endpoint_url = conf.get('endpoint_url')
+
     if conf.get('s3_reduced_redundancy', False):
         storage_class = _STORAGE_REDUCED_REDUDANCY
     else:
@@ -122,7 +124,7 @@ def deploy(conf, base_path, force, dry):
 
     logger.info('Connecting to bucket {}...'.format(bucket_name))
 
-    s3 = boto3.resource('s3')
+    s3 = boto3.resource('s3', endpoint_url=endpoint_url)
     bucket = s3.Bucket(bucket_name)
 
     site_dir = os.path.join(base_path, conf['site'])
