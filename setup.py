@@ -25,6 +25,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Internet :: WWW/HTTP :: Site Management',
     ],
 
@@ -35,11 +36,15 @@ setup(
         ]
     },
     install_requires=[
-        'boto3', 'PyYAML', 'six'
+        # moto is unable to test >=1.8 currently
+        # https://github.com/spulec/moto/issues/1793
+        'boto3>=1.7,<1.8',
+        'PyYAML~=3.11',
+        'six~=1.10',
     ],
     test_suite='s3_deploy.tests',
     tests_require=[
-        'mock',
-        'moto',
+        'mock~=2.0',
+        'moto~=1.1',
     ],
 )

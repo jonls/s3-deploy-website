@@ -1,7 +1,13 @@
 language: python
-install: pip install tox python-coveralls
+install: pip install tox tox-venv python-coveralls
 script: tox -v
 after_success: coveralls
+
+env:
+  global:
+    # Workaround for moto issue: https://github.com/spulec/moto/issues/1771
+    - BOTO_CONFIG=/dev/null
+    - TOX_TESTENV_PASSENV="BOTO_CONFIG"
 
 matrix:
   include:
