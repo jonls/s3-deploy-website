@@ -71,7 +71,16 @@ def resolve_cache_rules(key_name, rules):
     """Returns the value of the Cache-Control header after applying rules."""
 
     for rule in rules:
-        if match_key(rule['match'], key_name):
+        has_match = 'match' in rule
+        has_match_regexp = 'match_regexp' in rule
+        if has_match == has_match_regexp:
+            raise ValueError(
+                'Cache rule must have either match or match_regexp key'
+            )
+
+        pattern = rule['match'] if has_match else rule['match_regexp']
+
+        if match_key(pattern, key_name, regexp=has_match_regexp):
             cache_control = None
             if 'cache_control' in rule:
                 cache_control = rule['cache_control']

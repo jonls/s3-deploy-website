@@ -58,6 +58,12 @@ class ResolveCacheRulesTest(unittest.TestCase):
         cache = config.resolve_cache_rules('test', [])
         self.assertIsNone(cache)
 
+    def test_resolve_no_match_key(self):
+        with self.assertRaises(ValueError):
+            config.resolve_cache_rules('test', [
+                {'maxage': 3000},
+            ])
+
     def test_resolve_catch_all_to_cache_control(self):
         cache = config.resolve_cache_rules('test', [
             {'match': '*', 'cache_control': 'public, maxage=500'}
@@ -102,6 +108,18 @@ class ResolveCacheRulesTest(unittest.TestCase):
             {'match': '*', 'maxage': 300}
         ])
         self.assertEqual(cache, 'max-age=200')
+
+    def test_resolve_multiple_match_keys(self):
+        with self.assertRaises(ValueError):
+            config.resolve_cache_rules('test', [
+                {'match': 'test*', 'match_regexp': 'test.*'},
+            ])
+
+    def test_resolve_regexp_match_key(self):
+        cache = config.resolve_cache_rules('test', [
+            {'match_regexp': 't[es]{2}(t|a)$', 'maxage': 100},
+        ])
+        self.assertEqual(cache, 'max-age=100')
 
 
 class LoadConfigFileTest(unittest.TestCase):

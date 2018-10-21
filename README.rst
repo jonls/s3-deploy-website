@@ -31,6 +31,9 @@ The configuration is stored in a YAML file like this:
       - match: "/assets/*"
         maxage: 30 days
 
+      - match_regexp: '^assets/image-\d{3}-.*\.png$'
+        maxage: 90 days
+
       - match: "/css/*"
         maxage: 30 days
 
@@ -81,7 +84,7 @@ Configuration file
     ``arn:aws:s3:::example.com`` and ``arn:aws:s3:::example.com/*``.
 
 **s3_reduced_redundancy**
-    An optional boolean to indicate whether the files should be uploaded 
+    An optional boolean to indicate whether the files should be uploaded
     to `reduced redundancy`_ storage.
 
 **cloudfront_distribution_id**
@@ -91,7 +94,9 @@ Configuration file
 
 **cache_rules**
     A list of rules to determine the cache configuration of the uploaded files.
-    The ``match`` key specifies a pattern that the rule applies to. Only the
+    The ``match`` key specifies a pattern that the rule applies to. This uses
+    glob-style matching (with ``*`` and ``?``). Matching can also be performed
+    with regular expressions by using ``match_regexp``. Only the
     first rule to match a given key will be used. The ``maxage`` key
     specifies the time to cache the file. The value should be either a number
     of seconds or a string like ``30 days``, ``5 minutes, 30 seconds``, etc.
