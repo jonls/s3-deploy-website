@@ -83,24 +83,24 @@ class FileMatchTest(unittest.TestCase):
 
     def test_match_regex_dollar_suffix_ok(self):
         self.assertTrue(filematch.match_key(
-            'image-\d+\.png$', 'image-999.png', regexp=True))
+            r'image-\d+\.png$', 'image-999.png', regexp=True))
 
     def test_match_regex_dollar_suffix_fail(self):
         self.assertFalse(filematch.match_key(
-            'image-\d+\.png$', 'image-name.png', regexp=True))
+            r'image-\d+\.png$', 'image-name.png', regexp=True))
 
     def test_match_regex_caret_prefix_ok(self):
         self.assertTrue(filematch.match_key(
-            '^dir\/index\.html', 'dir/index.html', regexp=True))
+            r'^dir\/index\.html', 'dir/index.html', regexp=True))
 
     def test_match_regex_caret_prefix_fail(self):
         self.assertFalse(filematch.match_key(
-            '^dir\/index\.html', 'altdir/index.html', regexp=True))
+            r'^dir\/index\.html', 'altdir/index.html', regexp=True))
 
     def test_match_regex_caret_and_dollar_ok(self):
         self.assertTrue(filematch.match_key(
-            '^dir\/index\.html$', 'dir/index.html', regexp=True))
+            r'^dir\/index\.html$', 'dir/index.html', regexp=True))
 
     def test_match_regex_caret_and_dollar_fail(self):
         self.assertFalse(filematch.match_key(
-            '^dir\/index\.html$', 'dir/index.htm', regexp=True))
+            r'^dir\/index\.html$', 'dir/index.htm', regexp=True))
