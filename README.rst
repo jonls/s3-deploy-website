@@ -101,7 +101,12 @@ Configuration file
     specifies the time to cache the file. The value should be either a number
     of seconds or a string like ``30 days``, ``5 minutes, 30 seconds``, etc.
 
+**endpoint_url**
+    (Optional) For setting custom endpoint for boto3:
+    `Boto3 Session reference`_
+
 .. _`reduced redundancy`: https://aws.amazon.com/s3/reduced-redundancy/
+.. _`Boto3 Session reference`: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html#boto3.session.Session.resource
 
 Similar software
 ----------------
